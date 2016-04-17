@@ -6,14 +6,22 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+
+
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.JTextField;
 import javax.swing.JComboBox;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -22,8 +30,12 @@ import java.awt.Color;
 public class InterfaceServidor extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField textField;
-
+	private JTextField txtPorta;
+	private JButton btnParar;
+	private JButton btnIniciar;
+	private JTextArea txtPainel;
+	private JTextField txtIp;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -52,7 +64,7 @@ public class InterfaceServidor extends JFrame {
 		GridBagLayout gbl_contentPane = new GridBagLayout();
 		gbl_contentPane.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0};
-		gbl_contentPane.columnWeights = new double[]{1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_contentPane.columnWeights = new double[]{1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
 		contentPane.setLayout(gbl_contentPane);
 		
@@ -64,14 +76,15 @@ public class InterfaceServidor extends JFrame {
 		gbc_lblNewLabel.gridy = 0;
 		contentPane.add(lblNewLabel, gbc_lblNewLabel);
 		
-		JComboBox comboBox = new JComboBox();
-		GridBagConstraints gbc_comboBox = new GridBagConstraints();
-		gbc_comboBox.gridwidth = 6;
-		gbc_comboBox.fill = GridBagConstraints.BOTH;
-		gbc_comboBox.insets = new Insets(0, 0, 5, 5);
-		gbc_comboBox.gridx = 1;
-		gbc_comboBox.gridy = 0;
-		contentPane.add(comboBox, gbc_comboBox);
+		txtIp = new JTextField();
+		GridBagConstraints gbc_txtIp = new GridBagConstraints();
+		gbc_txtIp.gridwidth = 6;
+		gbc_txtIp.insets = new Insets(0, 0, 5, 5);
+		gbc_txtIp.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtIp.gridx = 1;
+		gbc_txtIp.gridy = 0;
+		contentPane.add(txtIp, gbc_txtIp);
+		txtIp.setColumns(10);
 		
 		JLabel lblPorta = new JLabel("Porta");
 		GridBagConstraints gbc_lblPorta = new GridBagConstraints();
@@ -81,20 +94,21 @@ public class InterfaceServidor extends JFrame {
 		gbc_lblPorta.gridy = 1;
 		contentPane.add(lblPorta, gbc_lblPorta);
 		
-		textField = new JTextField();
-		textField.setText("1818");
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.gridwidth = 6;
-		gbc_textField.insets = new Insets(0, 0, 5, 5);
-		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 1;
-		contentPane.add(textField, gbc_textField);
-		textField.setColumns(10);
+		txtPorta = new JTextField();
+		txtPorta.setText("1818");
+		GridBagConstraints gbc_txtPorta = new GridBagConstraints();
+		gbc_txtPorta.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtPorta.gridwidth = 6;
+		gbc_txtPorta.insets = new Insets(0, 0, 5, 5);
+		gbc_txtPorta.gridx = 1;
+		gbc_txtPorta.gridy = 1;
+		contentPane.add(txtPorta, gbc_txtPorta);
+		txtPorta.setColumns(10);
 		
-		JButton btnIniciar = new JButton("Iniciar Serviço");
+		btnIniciar = new JButton("Iniciar Serviço");
 		btnIniciar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				iniciarServico();
 			}
 		});
 		GridBagConstraints gbc_btnIniciar = new GridBagConstraints();
@@ -105,7 +119,12 @@ public class InterfaceServidor extends JFrame {
 		gbc_btnIniciar.gridy = 1;
 		contentPane.add(btnIniciar, gbc_btnIniciar);
 		
-		JButton btnParar = new JButton("Parar Serviço");
+		btnParar = new JButton("Parar Serviço");
+		btnParar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pararServico();
+			}
+		});
 		GridBagConstraints gbc_btnParar = new GridBagConstraints();
 		gbc_btnParar.insets = new Insets(0, 0, 5, 0);
 		gbc_btnParar.fill = GridBagConstraints.HORIZONTAL;
@@ -117,16 +136,29 @@ public class InterfaceServidor extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.gridwidth = 14;
-		gbc_scrollPane.insets = new Insets(0, 0, 0, 5);
 		gbc_scrollPane.fill = GridBagConstraints.BOTH;
 		gbc_scrollPane.gridx = 0;
 		gbc_scrollPane.gridy = 2;
 		contentPane.add(scrollPane, gbc_scrollPane);
 		
-		JTextArea textArea = new JTextArea();
-		textArea.setBackground(Color.BLACK);
-		textArea.setForeground(Color.GREEN);
-		scrollPane.setViewportView(textArea);
+		txtPainel = new JTextArea();
+		txtPainel.setBackground(Color.BLACK);
+		txtPainel.setForeground(Color.GREEN);
+		scrollPane.setViewportView(txtPainel);
 	}
 
+	protected void pararServico() {
+		btnIniciar.setEnabled(true);
+		btnParar.setEnabled(false);
+		txtPainel.append("Serviço Parado - OLHE PARA O LADO \nSE LIGA NO MESTIÇO NA BATIDA DO CAVADO. ♪♫♪");
+	}
+
+	protected void iniciarServico() {
+		btnIniciar.setEnabled(false);
+		btnParar.setEnabled(true);
+		txtPainel.setText(null);
+		txtPainel.append("Serviço Iniciado - SIGA EM FRENTE \n");
+
+
+	}
 }
