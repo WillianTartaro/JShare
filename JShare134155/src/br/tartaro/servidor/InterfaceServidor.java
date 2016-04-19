@@ -142,6 +142,7 @@ public class InterfaceServidor extends JFrame {
 		contentPane.add(scrollPane, gbc_scrollPane);
 		
 		txtPainel = new JTextArea();
+		txtPainel.setEnabled(false);
 		txtPainel.setBackground(Color.BLACK);
 		txtPainel.setForeground(Color.GREEN);
 		scrollPane.setViewportView(txtPainel);
