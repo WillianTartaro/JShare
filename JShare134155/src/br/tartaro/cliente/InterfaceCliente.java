@@ -23,15 +23,13 @@ public class InterfaceCliente extends JFrame {
 	private JPanel contentPane;
 	private JTextField textField;
 	private JTextField textField_1;
-	private JTextField textField_2;
-	private JButton btnCo;
-	private JButton btnNewButton;
 	private JScrollPane scrollPane;
 	private JList list;
 	private JScrollPane scrollPane_1;
 	private JTextArea textArea;
-	private JButton btnArquivos;
-	private JButton btnUpload;
+	private JLabel lblPorta_1;
+	private JButton btnConectar;
+	private JButton btnSair;
 
 	/**
 	 * Launch the application.
@@ -66,7 +64,7 @@ public class InterfaceCliente extends JFrame {
 		gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
 		contentPane.setLayout(gbl_contentPane);
 		
-		JLabel lblNome = new JLabel("Nome");
+		JLabel lblNome = new JLabel("Endereco IP");
 		GridBagConstraints gbc_lblNome = new GridBagConstraints();
 		gbc_lblNome.anchor = GridBagConstraints.EAST;
 		gbc_lblNome.insets = new Insets(0, 0, 5, 5);
@@ -84,35 +82,13 @@ public class InterfaceCliente extends JFrame {
 		contentPane.add(textField, gbc_textField);
 		textField.setColumns(10);
 		
-		//Chamar uma janela, mostrando os Arquivos upados no HD.
-		btnArquivos = new JButton("Arquivos");
-		btnArquivos.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				ListaArquivos lista = new ListaArquivos();
-				lista.setVisible(true);
-			}
-		});
-		GridBagConstraints gbc_btnArquivos = new GridBagConstraints();
-		gbc_btnArquivos.insets = new Insets(0, 0, 5, 5);
-		gbc_btnArquivos.gridx = 9;
-		gbc_btnArquivos.gridy = 0;
-		contentPane.add(btnArquivos, gbc_btnArquivos);
-		
-		btnUpload = new JButton("Upload");
-		GridBagConstraints gbc_btnUpload = new GridBagConstraints();
-		gbc_btnUpload.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnUpload.insets = new Insets(0, 0, 5, 5);
-		gbc_btnUpload.gridx = 10;
-		gbc_btnUpload.gridy = 0;
-		contentPane.add(btnUpload, gbc_btnUpload);
-		
-		JLabel lblNewLabel = new JLabel("Endereço IP");
-		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
-		gbc_lblNewLabel.anchor = GridBagConstraints.EAST;
-		gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
-		gbc_lblNewLabel.gridx = 0;
-		gbc_lblNewLabel.gridy = 1;
-		contentPane.add(lblNewLabel, gbc_lblNewLabel);
+		lblPorta_1 = new JLabel("Porta");
+		GridBagConstraints gbc_lblPorta_1 = new GridBagConstraints();
+		gbc_lblPorta_1.anchor = GridBagConstraints.EAST;
+		gbc_lblPorta_1.insets = new Insets(0, 0, 5, 5);
+		gbc_lblPorta_1.gridx = 0;
+		gbc_lblPorta_1.gridy = 1;
+		contentPane.add(lblPorta_1, gbc_lblPorta_1);
 		
 		textField_1 = new JTextField();
 		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
@@ -124,37 +100,30 @@ public class InterfaceCliente extends JFrame {
 		contentPane.add(textField_1, gbc_textField_1);
 		textField_1.setColumns(10);
 		
-		JLabel lblPorta = new JLabel("Porta");
-		GridBagConstraints gbc_lblPorta = new GridBagConstraints();
-		gbc_lblPorta.anchor = GridBagConstraints.EAST;
-		gbc_lblPorta.insets = new Insets(0, 0, 5, 5);
-		gbc_lblPorta.gridx = 5;
-		gbc_lblPorta.gridy = 1;
-		contentPane.add(lblPorta, gbc_lblPorta);
+		btnConectar = new JButton("Conectar");
+		btnConectar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ListaArquivos lista = new ListaArquivos();
+				lista.setVisible(true);
+			}
+		});
+		GridBagConstraints gbc_btnConectar = new GridBagConstraints();
+		gbc_btnConectar.insets = new Insets(0, 0, 5, 5);
+		gbc_btnConectar.gridx = 6;
+		gbc_btnConectar.gridy = 1;
+		contentPane.add(btnConectar, gbc_btnConectar);
 		
-		textField_2 = new JTextField();
-		GridBagConstraints gbc_textField_2 = new GridBagConstraints();
-		gbc_textField_2.gridwidth = 3;
-		gbc_textField_2.insets = new Insets(0, 0, 5, 5);
-		gbc_textField_2.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_2.gridx = 6;
-		gbc_textField_2.gridy = 1;
-		contentPane.add(textField_2, gbc_textField_2);
-		textField_2.setColumns(10);
-		
-		btnCo = new JButton("Conectar");
-		GridBagConstraints gbc_btnCo = new GridBagConstraints();
-		gbc_btnCo.insets = new Insets(0, 0, 5, 5);
-		gbc_btnCo.gridx = 9;
-		gbc_btnCo.gridy = 1;
-		contentPane.add(btnCo, gbc_btnCo);
-		
-		btnNewButton = new JButton("Desconectar");
-		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.insets = new Insets(0, 0, 5, 5);
-		gbc_btnNewButton.gridx = 10;
-		gbc_btnNewButton.gridy = 1;
-		contentPane.add(btnNewButton, gbc_btnNewButton);
+		btnSair = new JButton("Sair");
+		btnSair.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+		GridBagConstraints gbc_btnSair = new GridBagConstraints();
+		gbc_btnSair.insets = new Insets(0, 0, 5, 5);
+		gbc_btnSair.gridx = 7;
+		gbc_btnSair.gridy = 1;
+		contentPane.add(btnSair, gbc_btnSair);
 		
 		scrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
