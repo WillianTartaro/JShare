@@ -7,7 +7,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-
+import br.dagostini.jshare.comum.pojos.Arquivo;
+import br.dagostini.jshare.comun.Cliente;
+import br.dagostini.jshare.comun.IServer;
 
 import java.awt.GridBagLayout;
 import javax.swing.JLabel;
@@ -21,13 +23,20 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Color;
 
-public class InterfaceServidor extends JFrame {
+public class InterfaceServidor extends JFrame implements IServer {
 
 	private JPanel contentPane;
 	private JTextField txtPorta;
@@ -35,6 +44,10 @@ public class InterfaceServidor extends JFrame {
 	private JButton btnIniciar;
 	private JTextArea txtPainel;
 	private JTextField txtIp;
+	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy H:mm:ss:SSS");
+	private HashMap<Cliente, List<Arquivo>> mapaServidor;
+	private Registry registry;
+	private IServer servidor;
 	
 	/**
 	 * Launch the application.
@@ -142,24 +155,145 @@ public class InterfaceServidor extends JFrame {
 		contentPane.add(scrollPane, gbc_scrollPane);
 		
 		txtPainel = new JTextArea();
-		txtPainel.setEnabled(false);
+		txtPainel.setEnabled(true);
 		txtPainel.setBackground(Color.BLACK);
 		txtPainel.setForeground(Color.GREEN);
 		scrollPane.setViewportView(txtPainel);
 	}
 
 	protected void pararServico() {
-		btnIniciar.setEnabled(true);
-		btnParar.setEnabled(false);
-		txtPainel.append("Serviço Parado - OLHE PARA O LADO \nSE LIGA NO MESTIÇO NA BATIDA DO CAVADO. ♪♫♪");
-	}
+	
+
+			mostrar("SERVIDOR PARANDO O SERVIÇO.");
+
+			fecharTodosClientes();
+
+			try {
+				UnicastRemoteObject.unexportObject(this, true);
+				UnicastRemoteObject.unexportObject(registry, true);
+
+				btnIniciar.setEnabled(true);
+				btnParar.setEnabled(false);
+				txtIp.setEnabled(true);
+				txtPorta.setEnabled(true);
+
+				mostrar("Serviço encerrado.");
+
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+
+		}
+
+		/**
+		 * Desconecta todos os clientes.
+		 */
+		
+
+	
+		private void fecharTodosClientes() {
+			mostrar("DESCONECTANDO TODOS OS CLIENTES.");
+		}
+		
+		private void mostrar(String string) {
+			txtPainel.append(sdf.format(new Date()));
+			txtPainel.append(" -> ");
+			txtPainel.append(string);
+			txtPainel.append("\n");
+		}
 
 	protected void iniciarServico() {
-		btnIniciar.setEnabled(false);
-		btnParar.setEnabled(true);
-		txtPainel.setText(null);
-		txtPainel.append("Serviço Iniciado - SIGA EM FRENTE \n");
+		
+		String ip = txtIp.getText().trim();
+		if (!ip.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}")) {
+			JOptionPane.showMessageDialog(this, "Digite um IP Valido.");
+			return;
+		}
+		
+		String strPorta = txtPorta.getText().trim();
+
+		if (!strPorta.matches("[0-9]+") || strPorta.length() > 5) {
+			JOptionPane.showMessageDialog(this, "A porta deve ser um valor numérico de no máximo 5 dígitos!");
+			return;
+		}
+		int intPorta = Integer.parseInt(strPorta);
+		if (intPorta < 1024 || intPorta > 65535) {
+			JOptionPane.showMessageDialog(this, "A porta deve estar entre 1024 e 65535");
+			return;
+		}
+
+		try {
+
+			servidor = (IServer) UnicastRemoteObject.exportObject((IServer) this, 0);
+			registry = LocateRegistry.createRegistry(intPorta);
+			registry.rebind(IServer.NOME_SERVICO, servidor);
+
+			mostrar("Serviço iniciado.");
+
+			btnIniciar.setEnabled(false);
+			btnParar.setEnabled(true);
+			txtIp.setEnabled(false);
+			txtPorta.setEnabled(false);
+
+		} catch (RemoteException e) {
+			JOptionPane.showMessageDialog(this, "Erro criando registro, verifique se a porta já não está sendo usada.");
+			e.printStackTrace();
+		}
 
 
+	}
+
+	@Override
+	public void registrarCliente(Cliente c) throws RemoteException {
+		mostrar(c.getNome()+" registrado como cliente.");
+	}
+
+	@Override
+	public void publicarListaArquivos(Cliente c, List<Arquivo> lista) throws RemoteException {
+			
+		mapaServidor = new HashMap<>();
+		mapaServidor.put(c, lista);
+		
+		for (int i = 0; i < lista.size(); i++) {
+			System.out.println(lista.get(i).getNome() + lista.get(i).getTamanho());
+		}
+		mostrar(c.getNome()+" publicou lista de arquivos.");
+	}
+
+	@Override
+	public Map<Cliente, List<Arquivo>> procurarArquivo(String nome) throws RemoteException {
+		HashMap<Cliente, List<Arquivo>> resultado = new HashMap<>();
+		List<Arquivo> arquivosCliente = new ArrayList<>();
+
+		for (Map.Entry<Cliente, List<Arquivo>> lista : mapaServidor.entrySet()) {
+			
+			for(Arquivo arquivo : mapaServidor.get(lista.getKey())){
+				if (arquivo.getNome().contains(nome)) {
+					arquivosCliente.add(arquivo);
+				}
+			}
+			
+			if (!arquivosCliente.isEmpty()) {
+				Cliente c = new Cliente(lista.getKey().getNome(), lista.getKey().getIp(), lista.getKey().getPorta());
+				System.out.println(c.getNome());
+				for(Arquivo ar : arquivosCliente){
+					System.out.println(c.getNome());
+				}
+				resultado.put(c, arquivosCliente);
+			}
+		}
+		
+		return resultado;
+	}
+
+	@Override
+	public byte[] baixarArquivo(Arquivo arq) throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void desconectar(Cliente c) throws RemoteException {
+		mostrar(c.getNome()+" Saiu.");
 	}
 }
