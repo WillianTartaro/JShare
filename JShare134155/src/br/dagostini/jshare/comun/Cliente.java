@@ -17,7 +17,10 @@ public class Cliente implements Serializable {
 	private int porta;
 
 	public Cliente(String nome2, String ip2, int porta2) {
-		// TODO Auto-generated constructor stub
+		this.nome = nome2;
+		this.ip = ip2;
+		this.porta = porta2;
+	
 	}
 
 	public String getNome() {
