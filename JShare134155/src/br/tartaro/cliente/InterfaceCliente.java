@@ -10,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 
 import br.dagostini.jshare.comum.pojos.Arquivo;
 import br.dagostini.jshare.comum.pojos.Diretorio;
+import br.dagostini.jshare.comum.pojos.LerArquivo;
 import br.dagostini.jshare.comun.Cliente;
 import br.dagostini.jshare.comun.IServer;
 
@@ -37,6 +38,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.awt.event.ActionEvent;
@@ -56,11 +58,12 @@ public class InterfaceCliente extends JFrame implements IServer {
 	private Registry registry;
 	private Cliente cliente;
 	private JLabel lblPesquisar;
-	private JTextField textField;
+	private JTextField txtBusca;
 	private JScrollPane scrollPane;
 	private JTable table;
 	private JButton btnDown;
 	private JButton btnPesquisar;
+	private ModelArq modelArquivo;
 
 	/**
 	 * Launch the application.
@@ -82,7 +85,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 	 * Create the frame.
 	 */
 	public InterfaceCliente() {
-		setTitle("Chat Usuario");
+		setTitle("");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 503, 471);
 		contentPane = new JPanel();
@@ -182,17 +185,22 @@ public class InterfaceCliente extends JFrame implements IServer {
 		gbc_lblPesquisar.gridy = 2;
 		contentPane.add(lblPesquisar, gbc_lblPesquisar);
 		
-		textField = new JTextField();
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.gridwidth = 7;
-		gbc_textField.insets = new Insets(0, 0, 5, 5);
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.gridx = 1;
-		gbc_textField.gridy = 2;
-		contentPane.add(textField, gbc_textField);
-		textField.setColumns(10);
+		txtBusca = new JTextField();
+		GridBagConstraints gbc_txtBusca = new GridBagConstraints();
+		gbc_txtBusca.gridwidth = 7;
+		gbc_txtBusca.insets = new Insets(0, 0, 5, 5);
+		gbc_txtBusca.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtBusca.gridx = 1;
+		gbc_txtBusca.gridy = 2;
+		contentPane.add(txtBusca, gbc_txtBusca);
+		txtBusca.setColumns(10);
 		
 		btnPesquisar = new JButton("Pesquisar");
+		btnPesquisar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				buscaArquivo();
+			}
+		});
 		GridBagConstraints gbc_btnPesquisar = new GridBagConstraints();
 		gbc_btnPesquisar.insets = new Insets(0, 0, 5, 5);
 		gbc_btnPesquisar.gridx = 9;
@@ -212,6 +220,11 @@ public class InterfaceCliente extends JFrame implements IServer {
 		scrollPane.setViewportView(table);
 		
 		btnDown = new JButton("Download");
+		btnDown.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				downloadArquivo();
+			}
+		});
 		GridBagConstraints gbc_btnDown = new GridBagConstraints();
 		gbc_btnDown.anchor = GridBagConstraints.EAST;
 		gbc_btnDown.gridwidth = 3;
@@ -219,6 +232,62 @@ public class InterfaceCliente extends JFrame implements IServer {
 		gbc_btnDown.gridx = 5;
 		gbc_btnDown.gridy = 4;
 		contentPane.add(btnDown, gbc_btnDown);
+	}
+
+	protected void buscaArquivo() {
+
+			String busca = txtBusca.getText();
+			Map<Cliente, List<Arquivo>> arquivosBuscados = new HashMap<>();
+			if (busca.isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Campo vazio!");
+				return;
+			}
+			
+			try {
+				arquivosBuscados = servidor.procurarArquivo(busca);
+				if (arquivosBuscados.isEmpty()) {
+					JOptionPane.showMessageDialog(this, "Arquivos nao encontrados!");
+					return;
+				} else {
+					modelArquivo = new ModelArq(arquivosBuscados);
+					table.setModel(modelArquivo);
+				}
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+	}
+
+	protected void downloadArquivo() {
+		System.out.println("Capturando arquivo");
+		String nomeArq = (String) table.getValueAt(table.getSelectedRow(), 0);
+		String IP = (String) table.getValueAt(table.getSelectedRow(), 3);
+		int porta = (int) table.getValueAt(table.getSelectedRow(), 4);
+
+		Arquivo arquivo = new Arquivo();
+		arquivo.setNome(nomeArq);
+		
+		novoServidor(IP, porta, arquivo);
+	}
+
+	private void novoServidor(String ip, int porta, Arquivo arquivo) {
+
+		System.out.println("novo servidor");
+		LerArquivo lerArq = new LerArquivo();
+		
+		try {
+			registry = LocateRegistry.getRegistry(ip,porta);
+			IServer clienteServidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
+			
+			byte[] baixarArquivo = clienteServidor.baixarArquivo(arquivo);
+			System.out.println("Baixando");
+			escreverArquivo(new File("C:\\Download\\"+arquivo.getNome()), baixarArquivo);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	protected void desconectar() {
@@ -285,7 +354,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 
 	private List<Arquivo> criarListaCliente() {
 
-		File dir = new File("C:/Users/Willian/Uploads");
+		File dir = new File("C:\\Uploads");
 		List<Arquivo> listArquivo = new ArrayList<>();
 		List<Diretorio> listDiretorio = new ArrayList<>();
 		
@@ -330,7 +399,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 		byte[] dados = null;
 		for (Arquivo arquivo : arquivos) {
 			if (arquivo.getNome().contains(arq.getNome())) {
-				dados = lerArquivo(new File("C:\\Users\\Willian\\Uploads"));
+				dados = lerArquivo(new File("C:\\Uploads"));
 			}
 		}
 		return dados;
