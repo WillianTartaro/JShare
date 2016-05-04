@@ -212,8 +212,10 @@ public class InterfaceCliente extends JFrame implements IServer {
 		scrollPane = new JScrollPane();
 		scrollPane.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent arg0) {
-				
+			public void mouseClicked(MouseEvent click) {
+				if (click.getClickCount() == 2) {
+					downloadArquivo();
+				}
 			}
 		});
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
@@ -292,7 +294,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 			byte[] downArquivo = baixarArquivo(arquivo);
 			System.out.println("Baixando");
 			System.out.println("----------------------");
-			escreverArquivo(new File("C:\\Download\\"+arquivo.getNome()), downArquivo);
+			escreverArquivo(new File("C:\\Users\\Willian\\git\\JShare\\Download\\"+arquivo.getNome()), downArquivo);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -363,7 +365,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 
 	private List<Arquivo> criarListaCliente() {
 
-		File dir = new File("C:\\Uploads\\");
+		File dir = new File("C:\\Users\\Willian\\git\\JShare\\Uploads\\");
 		List<Arquivo> listArquivo = new ArrayList<>();
 		List<Diretorio> listDiretorio = new ArrayList<>();
 		
@@ -407,7 +409,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 		List<Arquivo> arquivos = criarListaCliente();
 		for (Arquivo arquivo : arquivos) {
 			if (arquivo.getNome().contains(arq.getNome())) {
-				byte[] dados = lerArquivo(new File("C:\\Uploads\\"+arq.getNome()));
+				byte[] dados = lerArquivo(new File("C:\\Users\\Willian\\git\\JShare\\Uploads\\"+arq.getNome()));
 				return dados;
 			}
 		}
