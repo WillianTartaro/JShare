@@ -39,7 +39,7 @@ public class LerArquivo {
 	}
 
 	public static void main(String[] args) {
-		new LerArquivo(new File("logo.pgn"));
+		new LerArquivo(new File("geral.png"));
 	}
 
 }

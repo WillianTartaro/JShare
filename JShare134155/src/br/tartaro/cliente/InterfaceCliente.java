@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.awt.event.ActionEvent;
 import javax.swing.JTable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class InterfaceCliente extends JFrame implements IServer {
 
@@ -208,6 +210,12 @@ public class InterfaceCliente extends JFrame implements IServer {
 		contentPane.add(btnPesquisar, gbc_btnPesquisar);
 		
 		scrollPane = new JScrollPane();
+		scrollPane.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				
+			}
+		});
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
 		gbc_scrollPane.gridwidth = 14;
@@ -258,7 +266,9 @@ public class InterfaceCliente extends JFrame implements IServer {
 	}
 
 	protected void downloadArquivo() {
+		System.out.println("----------------------");
 		System.out.println("Capturando arquivo");
+		System.out.println("----------------------");
 		String nomeArq = (String) table.getValueAt(table.getSelectedRow(), 0);
 		String IP = (String) table.getValueAt(table.getSelectedRow(), 3);
 		int porta = (int) table.getValueAt(table.getSelectedRow(), 4);
@@ -272,19 +282,18 @@ public class InterfaceCliente extends JFrame implements IServer {
 	private void novoServidor(String ip, int porta, Arquivo arquivo) {
 
 		System.out.println("novo servidor");
+		System.out.println("----------------------");
 		LerArquivo lerArq = new LerArquivo();
 		
 		try {
 			registry = LocateRegistry.getRegistry(ip,porta);
-			IServer clienteServidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
-			
-			byte[] baixarArquivo = clienteServidor.baixarArquivo(arquivo);
+			//IServer clienteServidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
+			//NULL --> era brinks
+			byte[] downArquivo = baixarArquivo(arquivo);
 			System.out.println("Baixando");
-			escreverArquivo(new File("C:\\Download\\"+arquivo.getNome()), baixarArquivo);
+			System.out.println("----------------------");
+			escreverArquivo(new File("C:\\Download\\"+arquivo.getNome()), downArquivo);
 		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -354,7 +363,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 
 	private List<Arquivo> criarListaCliente() {
 
-		File dir = new File("C:\\Uploads");
+		File dir = new File("C:\\Uploads\\");
 		List<Arquivo> listArquivo = new ArrayList<>();
 		List<Diretorio> listDiretorio = new ArrayList<>();
 		
@@ -396,13 +405,13 @@ public class InterfaceCliente extends JFrame implements IServer {
 	@Override
 	public byte[] baixarArquivo(Arquivo arq) throws RemoteException {
 		List<Arquivo> arquivos = criarListaCliente();
-		byte[] dados = null;
 		for (Arquivo arquivo : arquivos) {
 			if (arquivo.getNome().contains(arq.getNome())) {
-				dados = lerArquivo(new File("C:\\Uploads"));
+				byte[] dados = lerArquivo(new File("C:\\Uploads\\"+arq.getNome()));
+				return dados;
 			}
 		}
-		return dados;
+		return null;
 	}
 
 	private byte[] lerArquivo(File file) {
@@ -422,7 +431,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 		try {
 			Files.write(Paths.get(file.getPath()), dados, StandardOpenOption.CREATE);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
