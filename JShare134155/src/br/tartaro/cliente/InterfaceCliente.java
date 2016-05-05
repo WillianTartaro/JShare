@@ -209,7 +209,7 @@ public class InterfaceCliente extends JFrame implements IServer {
 		gbc_btnPesquisar.gridy = 2;
 		contentPane.add(btnPesquisar, gbc_btnPesquisar);
 		
-		scrollPane = new JScrollPane();
+		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent click) {
